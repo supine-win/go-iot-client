@@ -1,6 +1,6 @@
 package clients
 
-import "github.com/example/go-iotclient/core"
+import "github.com/supine-win/go-iot-client/core"
 
 type IoTClient interface {
 	Open() core.Result

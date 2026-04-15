@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/example/go-iotclient/core"
+	"github.com/supine-win/go-iot-client/core"
 )
 
 type AllenBradleyClient struct {

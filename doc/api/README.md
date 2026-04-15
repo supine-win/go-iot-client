@@ -8,7 +8,7 @@ package main
 import (
 	"fmt"
 
-	iotclient "github.com/example/go-iotclient"
+	iotclient "github.com/supine-win/go-iot-client"
 )
 
 func readSample() error {
@@ -41,7 +41,7 @@ package main
 import (
 	"fmt"
 
-	modbusclient "github.com/example/go-iotclient/clients/modbus"
+	modbusclient "github.com/supine-win/go-iot-client/clients/modbus"
 )
 
 func modbusSample() error {

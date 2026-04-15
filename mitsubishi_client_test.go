@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/example/go-iotclient/mock"
+	"github.com/supine-win/go-iot-client/mock"
 )
 
 func setupClient(t *testing.T) (*MitsubishiClient, *mock.Server, func()) {

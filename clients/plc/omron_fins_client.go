@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/example/go-iotclient/core"
+	"github.com/supine-win/go-iot-client/core"
 )
 
 const defaultOmronTimeout = 1500 * time.Millisecond

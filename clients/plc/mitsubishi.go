@@ -1,6 +1,6 @@
 package plc
 
-import iotclient "github.com/example/go-iotclient"
+import iotclient "github.com/supine-win/go-iot-client"
 
 type MitsubishiClient = iotclient.MitsubishiClient
 type MitsubishiVersion = iotclient.MitsubishiVersion

@@ -1,4 +1,4 @@
-module github.com/example/go-iotclient
+module github.com/supine-win/go-iot-client
 
 go 1.21
 

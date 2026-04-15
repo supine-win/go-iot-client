@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/example/go-iotclient/core"
+	"github.com/supine-win/go-iot-client/core"
 )
 
 func TestAllenBradleyClientReadWrite(t *testing.T) {

@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/example/go-iotclient/core"
+	"github.com/supine-win/go-iot-client/core"
 	"github.com/robinson/gos7"
 )
 

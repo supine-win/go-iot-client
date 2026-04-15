@@ -16,7 +16,7 @@
 ## 安装
 
 ```bash
-go get github.com/example/go-iotclient
+go get github.com/supine-win/go-iot-client
 ```
 
 ## 快速开始
@@ -27,7 +27,7 @@ package main
 import (
 	"fmt"
 
-	iot "github.com/example/go-iotclient"
+	iot "github.com/supine-win/go-iot-client"
 )
 
 func main() {
