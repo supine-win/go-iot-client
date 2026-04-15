@@ -33,6 +33,31 @@ func readSample() error {
 - `clients/modbus`: `TcpClient`, `RtuOverTcpClient`, `RtuClient`, `AsciiClient`
 - 以上客户端都实现 `clients.IoTClient`：`Open/Close/Connected/ReadInt16/ReadInt32/ReadFloat/ReadString/Write`
 
+## 客户端示例（以 Modbus TCP 为例）
+
+```go
+package main
+
+import (
+	"fmt"
+
+	modbusclient "github.com/example/go-iotclient/clients/modbus"
+)
+
+func modbusSample() error {
+	modbus := modbusclient.NewTcpClient("127.0.0.1:502")
+	if r := modbus.Open(); !r.IsSucceed {
+		return fmt.Errorf("open modbus failed: %s", r.Err)
+	}
+	defer modbus.Close()
+
+	if w := modbus.Write("100", int16(123)); !w.IsSucceed {
+		return fmt.Errorf("write failed: %s", w.Err)
+	}
+	return nil
+}
+```
+
 ## 连接健壮性参数
 
 - `SetReadWriteTimeout(read, write)`

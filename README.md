@@ -2,6 +2,8 @@
 
 Go implementation inspired by C# `IoTClient`, focused on robust industrial communication clients with a unified result model.
 
+[English](README.md) | [简体中文](README.zh-CN.md)
+
 [![CI](https://github.com/supine-win/go-iot-client/actions/workflows/ci.yml/badge.svg)](https://github.com/supine-win/go-iot-client/actions/workflows/ci.yml)
 
 ## Features
