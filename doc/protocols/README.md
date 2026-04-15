@@ -3,16 +3,20 @@
 | 协议域 | 客户端 | 状态 |
 |---|---|---|
 | Mitsubishi MC | `MitsubishiClient` | 已实现（Qna_3E） |
-| Siemens S7 | `clients/plc/SiemensClient` | 骨架已建立 |
-| Omron FINS | `clients/plc/OmronFinsClient` | 骨架已建立 |
-| Allen-Bradley | `clients/plc/AllenBradleyClient` | 骨架已建立 |
-| Modbus TCP | `clients/modbus/TcpClient` | 骨架已建立 |
-| Modbus RTU over TCP | `clients/modbus/RtuOverTcpClient` | 骨架已建立 |
-| Modbus RTU | `clients/modbus/RtuClient` | 骨架已建立 |
-| Modbus ASCII | `clients/modbus/AsciiClient` | 骨架已建立 |
+| Siemens S7 | `clients/plc/SiemensClient` | 已实现（基于 gos7 的 S7 读写 + 重试） |
+| Omron FINS | `clients/plc/OmronFinsClient` | 已实现（FINS/TCP 握手 + 读写 + 重试） |
+| Allen-Bradley | `clients/plc/AllenBradleyClient` | 已实现（CIP 会话 + Tag 读写 + 重试） |
+| Modbus TCP | `clients/modbus/TcpClient` | 已实现（FC03/04/05/10，含重试自恢复） |
+| Modbus RTU over TCP | `clients/modbus/RtuOverTcpClient` | 已实现（FC03/04/05/10，含 CRC 校验） |
+| Modbus RTU | `clients/modbus/RtuClient` | 已实现（串口链路 + RTU 帧 + CRC 校验） |
+| Modbus ASCII | `clients/modbus/AsciiClient` | 已实现（串口链路 + ASCII 帧 + LRC 校验） |
 
 ## 兼容约定
 
-- “骨架已建立”表示类型、构造器、统一接口已可编译接入，后续按 parity 清单补齐协议语义。
+- Modbus 全系客户端当前支持 `ReadInt16/ReadInt32/ReadFloat/ReadString` 与 `Write(bool/int/int16/uint/uint16/int32/uint32/int64/uint64/float32/float64/string/[]byte)`。
+- Siemens S7 当前支持 `DB/M/I/Q` 区域地址（如 `DB1.DBW20`、`M100`）的基础读写。
+- Omron FINS 当前支持区域 `D/C/W/H/A` 的字读写（`ReadInt16/ReadInt32/ReadFloat/ReadString` 与通用 `Write`）。
+- Allen-Bradley 当前支持会话注册、Tag 基础读写（`ReadInt16/ReadInt32/ReadFloat/ReadString` 与通用 `Write`）。
+- 串口客户端默认参数：RTU(`9600/8N1`)、ASCII(`9600/7E1`)，可通过 `SetSerialMode` 覆盖。
 - 对 bridge 当前链路所需能力，保持“已实现 + 回归通过”优先级最高。
 
