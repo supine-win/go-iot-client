@@ -25,6 +25,8 @@ type MitsubishiClient struct {
 	monitoringTimer  uint16
 	readTimeout      time.Duration
 	writeTimeout     time.Duration
+	maxRetries       int
+	retryDelay       time.Duration
 
 	conn net.Conn
 }
@@ -48,6 +50,8 @@ func NewMitsubishiClient(version MitsubishiVersion, ip string, port int, timeout
 		monitoringTimer:  2000,
 		readTimeout:      5 * time.Second,
 		writeTimeout:     5 * time.Second,
+		maxRetries:       2,
+		retryDelay:       100 * time.Millisecond,
 	}
 }
 
@@ -77,6 +81,18 @@ func (c *MitsubishiClient) SetReadWriteTimeout(readTimeout, writeTimeout time.Du
 	}
 }
 
+func (c *MitsubishiClient) SetRetryPolicy(maxRetries int, retryDelay time.Duration) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if maxRetries < 0 {
+		maxRetries = 0
+	}
+	c.maxRetries = maxRetries
+	if retryDelay > 0 {
+		c.retryDelay = retryDelay
+	}
+}
+
 func (c *MitsubishiClient) Open() Result {
 	r := newResult()
 	if c.version != MitsubishiVersionQna3E {
@@ -93,11 +109,10 @@ func (c *MitsubishiClient) Open() Result {
 		c.conn = nil
 	}
 
-	address := net.JoinHostPort(c.ip, strconv.Itoa(c.port))
-	conn, err := net.DialTimeout("tcp", address, c.timeout)
+	conn, err := c.dialLocked()
 	if err != nil {
 		r.IsSucceed = false
-		r.Err = fmt.Sprintf("dial %s failed: %v", address, err)
+		r.Err = err.Error()
 		r.ErrCode = 408
 		return endResult(r)
 	}
@@ -330,8 +345,26 @@ func (c *MitsubishiClient) writeWords(addr uint16, values []uint16) error {
 func (c *MitsubishiClient) sendRequest(command uint16, subcommand uint16, payload []byte, timeout time.Duration) ([]byte, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
+	var lastErr error
+	for attempt := 0; attempt <= c.maxRetries; attempt++ {
+		resp, err := c.sendRequestOnceLocked(command, subcommand, payload, timeout)
+		if err == nil {
+			return resp, nil
+		}
+		lastErr = err
+		_ = c.reconnectLocked()
+		if attempt < c.maxRetries {
+			time.Sleep(c.retryDelay)
+		}
+	}
+	return nil, fmt.Errorf("send request failed after %d attempts: %w", c.maxRetries+1, lastErr)
+}
+
+func (c *MitsubishiClient) sendRequestOnceLocked(command uint16, subcommand uint16, payload []byte, timeout time.Duration) ([]byte, error) {
 	if c.conn == nil {
-		return nil, fmt.Errorf("not connected")
+		if err := c.reconnectLocked(); err != nil {
+			return nil, err
+		}
 	}
 
 	dataLen := uint16(2 + 2 + 2 + len(payload))
@@ -373,6 +406,28 @@ func (c *MitsubishiClient) sendRequest(command uint16, subcommand uint16, payloa
 		return nil, fmt.Errorf("plc error endcode=0x%04X", endCode)
 	}
 	return body[2:], nil
+}
+
+func (c *MitsubishiClient) reconnectLocked() error {
+	if c.conn != nil {
+		_ = c.conn.Close()
+		c.conn = nil
+	}
+	conn, err := c.dialLocked()
+	if err != nil {
+		return err
+	}
+	c.conn = conn
+	return nil
+}
+
+func (c *MitsubishiClient) dialLocked() (net.Conn, error) {
+	address := net.JoinHostPort(c.ip, strconv.Itoa(c.port))
+	conn, err := net.DialTimeout("tcp", address, c.timeout)
+	if err != nil {
+		return nil, fmt.Errorf("dial %s failed: %w", address, err)
+	}
+	return conn, nil
 }
 
 func parseDAddress(address string) (uint16, error) {

@@ -1,16 +1,8 @@
 package iotclient
 
-import "time"
+import "github.com/example/go-iotclient/core"
 
-type Result struct {
-	IsSucceed    bool      `json:"isSucceed"`
-	Err          string    `json:"err,omitempty"`
-	ErrCode      int       `json:"errCode,omitempty"`
-	Request      string    `json:"request,omitempty"`
-	Response     string    `json:"response,omitempty"`
-	InitialTime  time.Time `json:"initialTime"`
-	TimeConsuming float64  `json:"timeConsuming"`
-}
+type Result = core.Result
 
 type ResultT[T any] struct {
 	Result
@@ -18,19 +10,21 @@ type ResultT[T any] struct {
 }
 
 func newResult() Result {
-	return Result{
-		IsSucceed:   true,
-		InitialTime: time.Now(),
-	}
+	return core.NewResult()
 }
 
 func endResult(r Result) Result {
-	r.TimeConsuming = time.Since(r.InitialTime).Seconds() * 1000
-	return r
+	return core.EndResult(r)
 }
 
 func endResultT[T any](r ResultT[T]) ResultT[T] {
-	r.TimeConsuming = time.Since(r.InitialTime).Seconds() * 1000
-	return r
+	ended := core.EndResultT(core.ResultT[T]{
+		Result: r.Result,
+		Value:  r.Value,
+	})
+	return ResultT[T]{
+		Result: ended.Result,
+		Value:  ended.Value,
+	}
 }
 

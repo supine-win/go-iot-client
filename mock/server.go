@@ -18,8 +18,10 @@ type Server struct {
 	listener net.Listener
 	addr     string
 
-	mu    sync.Mutex
-	words map[uint16]uint16
+	mu               sync.Mutex
+	words            map[uint16]uint16
+	failNextRequest  bool
+	failWithEndCode  uint16
 }
 
 func NewServer() (*Server, error) {
@@ -62,6 +64,13 @@ func (s *Server) GetWord(addr uint16) uint16 {
 	return s.words[addr]
 }
 
+func (s *Server) FailNextRequest(endCode uint16) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.failNextRequest = true
+	s.failWithEndCode = endCode
+}
+
 func (s *Server) handleConn(conn net.Conn) {
 	defer conn.Close()
 	for {
@@ -90,6 +99,20 @@ func (s *Server) processRequest(header, cmdData []byte) []byte {
 	resp = append(resp, networkNo, stationNo)
 	resp = appendLE16(resp, moduleIO)
 	resp = append(resp, multidrop)
+
+	s.mu.Lock()
+	if s.failNextRequest {
+		endCode := s.failWithEndCode
+		if endCode == 0 {
+			endCode = 0xC020
+		}
+		s.failNextRequest = false
+		s.mu.Unlock()
+		resp = appendLE16(resp, 2)
+		resp = appendLE16(resp, endCode)
+		return resp
+	}
+	s.mu.Unlock()
 
 	if len(cmdData) < 6 {
 		resp = appendLE16(resp, 2)
